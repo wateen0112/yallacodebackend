@@ -8,8 +8,10 @@
 
 ## API Secret Auth
 
+- Protected methods on API paths: `POST`, `PUT`, `DELETE`
+- Public methods: `GET`
 - Protected paths: `/api/projects`, `/api/reviews`, `/api/upload`
-- Required header for protected paths: `x-api-secret: <BACKEND_API_SECRET>`
+- Required header for protected requests: `x-api-secret: <BACKEND_API_SECRET>`
 - Public paths (no secret required): `/api/health`, `/api-docs`
 
 ## Middleware and Behavior
@@ -50,7 +52,7 @@ Base path: `/api/projects`
 #### `GET /api/projects`
 
 - Purpose: list projects with pagination, search, and sorting
-- Auth: requires `x-api-secret`
+- Auth: public (GET)
 - Query params:
   - `page` (number, default `1`)
   - `limit` (number, default `10`)
@@ -75,7 +77,7 @@ Base path: `/api/projects`
 #### `GET /api/projects/:id`
 
 - Purpose: fetch one project by MongoDB id
-- Auth: requires `x-api-secret`
+- Auth: public (GET)
 - Path params:
   - `id` (string, Mongo ObjectId)
 - Success response:
@@ -136,7 +138,7 @@ Base path: `/api/reviews`
 #### `GET /api/reviews`
 
 - Purpose: list all reviews (newest first)
-- Auth: requires `x-api-secret`
+- Auth: public (GET)
 - Success response:
 
 ```json
@@ -182,7 +184,7 @@ Base path: `/api/reviews`
 #### `GET /api/reviews/stats`
 
 - Purpose: aggregated review metrics
-- Auth: requires `x-api-secret`
+- Auth: public (GET)
 - Success response:
 
 ```json

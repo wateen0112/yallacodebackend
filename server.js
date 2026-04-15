@@ -27,6 +27,7 @@ const errorMiddleware = require('./middlewares/errorMiddleware');
 const apiSecretMiddleware = require('./middlewares/apiSecretMiddleware');
 
 const app = express();
+const METHODS_REQUIRING_SECRET = new Set(['POST', 'PUT', 'DELETE']);
 
 const LOG_GREEN = '\x1b[32m';
 const LOG_RESET = '\x1b[0m';
@@ -284,6 +285,14 @@ const logRequest = (req, res, next) => {
     next();
 };
 
+const apiSecretForWriteMethods = (req, res, next) => {
+    if (METHODS_REQUIRING_SECRET.has(req.method)) {
+        return apiSecretMiddleware(req, res, next);
+    }
+
+    next();
+};
+
 // Middlewares
 app.use(helmet());
 app.use(cors());
@@ -293,9 +302,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/projects', apiSecretMiddleware, projectRoutes);
-app.use('/api/reviews', apiSecretMiddleware, reviewRoutes);
-app.use('/api/upload', apiSecretMiddleware, uploadRoutes);
+app.use('/api/projects', apiSecretForWriteMethods, projectRoutes);
+app.use('/api/reviews', apiSecretForWriteMethods, reviewRoutes);
+app.use('/api/upload', apiSecretForWriteMethods, uploadRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

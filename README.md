@@ -91,9 +91,11 @@ Visit `http://localhost:5000/api-docs` to explore and test all API endpoints int
 
 ## API Endpoints
 
-All endpoints under `/api/projects`, `/api/reviews`, and `/api/upload` require:
+Only write requests under `/api/projects`, `/api/reviews`, and `/api/upload` require API secret:
 
 - Header: `x-api-secret: <BACKEND_API_SECRET>`
+- Protected methods: `POST`, `PUT`, `DELETE`
+- Public methods: `GET`
 
 ### Projects
 
