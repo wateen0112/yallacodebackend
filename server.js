@@ -24,6 +24,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 
 // Import middlewares
 const errorMiddleware = require('./middlewares/errorMiddleware');
+const apiSecretMiddleware = require('./middlewares/apiSecretMiddleware');
 
 const app = express();
 
@@ -292,9 +293,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/projects', projectRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/projects', apiSecretMiddleware, projectRoutes);
+app.use('/api/reviews', apiSecretMiddleware, reviewRoutes);
+app.use('/api/upload', apiSecretMiddleware, uploadRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

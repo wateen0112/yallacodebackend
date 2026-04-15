@@ -70,6 +70,7 @@ project/
    CLOUD_NAME=your_cloudinary_cloud_name
    API_KEY=your_cloudinary_api_key
    API_SECRET=your_cloudinary_api_secret
+   BACKEND_API_SECRET=your_generated_backend_api_secret
    ```
 
 4. Start the development server:
@@ -89,6 +90,10 @@ The API documentation is available via Swagger UI at `/api-docs` when the server
 Visit `http://localhost:5000/api-docs` to explore and test all API endpoints interactively.
 
 ## API Endpoints
+
+All endpoints under `/api/projects`, `/api/reviews`, and `/api/upload` require:
+
+- Header: `x-api-secret: <BACKEND_API_SECRET>`
 
 ### Projects
 
@@ -133,6 +138,9 @@ formData.append('image', fileInput.files[0]);
 
 const uploadRes = await fetch('/api/upload', {
   method: 'POST',
+  headers: {
+    'x-api-secret': BACKEND_API_SECRET
+  },
   body: formData
 });
 
@@ -155,7 +163,8 @@ const projectData = {
 await fetch('/api/projects', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'x-api-secret': BACKEND_API_SECRET
   },
   body: JSON.stringify(projectData)
 });
