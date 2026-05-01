@@ -109,8 +109,7 @@ const createProject = async (req, res, next) => {
             tags: tags,
             status: req.body.status || 'Pending',
             image: imageUrl,
-            // Handle both projectUrl (from form) and project_url (for API consistency)
-            project_url: req.body.projectUrl || req.body.project_url,
+            project_url: req.body.project_url,
             // Optional legacy fields for backward compatibility
             shortDescription: req.body.shortDescription,
             longDescription: req.body.longDescription,
