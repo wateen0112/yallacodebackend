@@ -4,6 +4,7 @@ const router = express.Router();
 const {
     getProjects,
     getProject,
+    getProjectById,
     createProject,
     deleteProject
 } = require('../controllers/projectController');
@@ -166,6 +167,76 @@ router.post('/', (req, res, next) => {
     console.log('After multer - Body keys:', Object.keys(req.body));
     next();
 }, createProject);
+
+/**
+ * @swagger
+ * /api/projects/test:
+ *   post:
+ *     summary: Test form data parsing
+ *     description: Test endpoint to debug multipart form data parsing
+ *     tags: [Projects]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               slug:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Form data received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     body:
+ *                       type: object
+ *                     file:
+ *                       type: object
+ */
+router.post('/test', upload.single('image'), (req, res) => {
+    console.log('TEST ENDPOINT - Raw request headers:', req.headers);
+    console.log('TEST ENDPOINT - Content-Type:', req.get('Content-Type'));
+    console.log('TEST ENDPOINT - Request body:', req.body);
+    console.log('TEST ENDPOINT - Request file:', req.file);
+    console.log('TEST ENDPOINT - Body keys:', Object.keys(req.body));
+    console.log('TEST ENDPOINT - Description:', req.body.description);
+    console.log('TEST ENDPOINT - Title:', req.body.title);
+    console.log('TEST ENDPOINT - Slug:', req.body.slug);
+    
+    res.json({
+        success: true,
+        data: {
+            message: 'Form data received',
+            body: req.body,
+            file: req.file ? {
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                path: req.file.path
+            } : null,
+            bodyKeys: Object.keys(req.body),
+            description: req.body.description,
+            title: req.body.title,
+            slug: req.body.slug
+        }
+    });
+});
 
 /**
  * @swagger

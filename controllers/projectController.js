@@ -80,6 +80,7 @@ const getProject = async (req, res, next) => {
 // @access  Public (in production, might need auth)
 const createProject = async (req, res, next) => {
     try {
+        console.log('=== CREATE PROJECT START ===');
         console.log('Request body received:', req.body);
         console.log('Request body keys:', Object.keys(req.body));
         console.log('File received:', req.file);
@@ -87,45 +88,10 @@ const createProject = async (req, res, next) => {
         console.log('Title field specifically:', req.body.title);
         console.log('Slug field specifically:', req.body.slug);
 
-        let imageUrl = '';
-
-        // Handle image upload if present
-        if (req.file) {
-            console.log('File uploaded successfully:', req.file);
-            console.log('File path:', req.file.path);
-            
-            // Add a small delay to ensure file is fully written
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Check if file exists before uploading to Cloudinary
-            const fs = require('fs');
-            if (!fs.existsSync(req.file.path)) {
-                console.error('File not found at path:', req.file.path);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Uploaded file not found on server'
-                });
-            }
-            
-            // Check file size to ensure it's not empty
-            const stats = fs.statSync(req.file.path);
-            console.log('File size:', stats.size, 'bytes');
-            if (stats.size === 0) {
-                console.error('File is empty:', req.file.path);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Uploaded file is empty'
-                });
-            }
-            
-            imageUrl = await uploadToCloudinary(req.file.path);
-            console.log('Cloudinary upload successful, URL:', imageUrl);
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: 'Image is required'
-            });
-        }
+        // TEMPORARY: Skip Cloudinary for debugging - use placeholder URL
+        let imageUrl = 'https://via.placeholder.com/300x200.png?text=Debug+Image';
+        
+        console.log('Using placeholder image URL for debugging');
 
         // Parse tags if sent as string
         let tags = req.body.tags;
@@ -149,15 +115,24 @@ const createProject = async (req, res, next) => {
         };
 
         console.log('Project data to be created:', projectData);
+        console.log('Description in projectData:', projectData.description);
+        console.log('Title in projectData:', projectData.title);
+        console.log('Slug in projectData:', projectData.slug);
 
         const project = await Project.create(projectData);
+        console.log('Project created successfully:', project);
 
         res.status(201).json({
             success: true,
             data: project,
-            message: 'Project created successfully'
+            message: 'Project created successfully (debug mode)'
         });
     } catch (error) {
+        console.error('=== CREATE PROJECT ERROR ===');
+        console.error('Error details:', error);
+        console.error('Error message:', error.message);
+        console.error('Error name:', error.name);
+        
         // Handle duplicate slug error
         if (error.code === 11000 && error.keyPattern?.slug) {
             return res.status(400).json({
@@ -165,6 +140,29 @@ const createProject = async (req, res, next) => {
                 message: 'Slug already exists. Please use a unique slug.'
             });
         }
+        next(error);
+    }
+};
+
+// @desc    Get single project by ID
+// @route   GET /api/projects/:id
+// @access  Public
+const getProjectById = async (req, res, next) => {
+    try {
+        const project = await Project.findById(req.params.id);
+
+        if (!project) {
+            return res.status(404).json({
+                success: false,
+                message: 'Project not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: project
+        });
+    } catch (error) {
         next(error);
     }
 };
@@ -197,6 +195,7 @@ const deleteProject = async (req, res, next) => {
 module.exports = {
     getProjects,
     getProject,
+    getProjectById,
     createProject,
     deleteProject
 };
