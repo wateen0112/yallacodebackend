@@ -61,11 +61,6 @@ const projectSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-// Virtual field for backward compatibility - return coverImage if image doesn't exist
-projectSchema.virtual('coverImage').get(function() {
-    return this.image || this.coverImage;
-});
-
 // Ensure project_url is included in JSON output
 projectSchema.set('toJSON', { virtuals: true });
 projectSchema.set('toObject', { virtuals: true });
