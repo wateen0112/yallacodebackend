@@ -66,6 +66,10 @@ const getProject = async (req, res, next) => {
             });
         }
 
+        console.log('Project found:', project);
+        console.log('Project project_url:', project.project_url);
+        console.log('Project object keys:', Object.keys(project.toObject()));
+
         res.status(200).json({
             success: true,
             data: project
