@@ -182,6 +182,14 @@ const createProject = async (req, res, next) => {
                 .filter(tag => tag.length > 0); // Remove empty tags from trailing comma
         }
 
+        // Parse technologies if sent as string
+        let technologies = req.body.technologies;
+        if (typeof technologies === 'string') {
+            technologies = technologies.split(',')
+                .map(tech => tech.trim())
+                .filter(tech => tech.length > 0); // Remove empty technologies from trailing comma
+        }
+
         // Create project with form data
         const projectData = {
             slug: req.body.slug,
@@ -190,12 +198,12 @@ const createProject = async (req, res, next) => {
             tags: tags,
             status: req.body.status || 'Pending',
             image: imageUrl,
-            project_url: req.body.projectUrl || req.body.project_url,
-            // Optional legacy fields for backward compatibility
-            shortDescription: req.body.shortDescription,
-            longDescription: req.body.longDescription,
-            technologies: req.body.technologies ? (typeof req.body.technologies === 'string' ? req.body.technologies.split(',').map(tech => tech.trim()) : req.body.technologies) : [],
-            demoLink: req.body.demoLink
+            // Handle all form fields
+            shortDescription: req.body.shortDescription || '',
+            longDescription: req.body.longDescription || '',
+            technologies: technologies,
+            demoLink: req.body.demoLink || '',
+            project_url: req.body.project_url || ''
         };
 
         console.log('Project data to be created:', projectData);

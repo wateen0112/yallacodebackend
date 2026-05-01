@@ -135,6 +135,18 @@ router.get('/:id', getProject);
  *               project_url:
  *                 type: string
  *                 description: Optional URL to the live project or demo
+ *               shortDescription:
+ *                 type: string
+ *                 description: Brief project description
+ *               longDescription:
+ *                 type: string
+ *                 description: Detailed project description
+ *               technologies:
+ *                 type: string
+ *                 description: Comma-separated list of technologies
+ *               demoLink:
+ *                 type: string
+ *                 description: Link to project demo
  *     responses:
  *       201:
  *         description: Project created successfully
