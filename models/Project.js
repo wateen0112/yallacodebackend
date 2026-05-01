@@ -1,32 +1,52 @@
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
-    image: {
+    slug: {
         type: String,
         required: true,
+        unique: true,
+        trim: true,
+        lowercase: true,
     },
     title: {
         type: String,
         required: true,
         trim: true,
     },
-    shortDescription: {
+    description: {
         type: String,
         required: true,
+        trim: true,
+    },
+    tags: [{
+        type: String,
+        trim: true,
+    }],
+    status: {
+        type: String,
+        required: true,
+        enum: ['Pending', 'In Progress', 'Completed', 'On Hold'],
+        default: 'Pending',
+    },
+    image: {
+        type: String,
+        required: true,
+    },
+    // Keep existing fields for backward compatibility
+    shortDescription: {
+        type: String,
         trim: true,
     },
     longDescription: {
         type: String,
-        required: true,
         trim: true,
     },
     technologies: [{
         type: String,
-        required: true,
+        trim: true,
     }],
     demoLink: {
         type: String,
-        required: true,
         trim: true,
     },
 }, {

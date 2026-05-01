@@ -92,19 +92,24 @@ const createProject = async (req, res, next) => {
             });
         }
 
-        // Parse technologies if sent as string
-        let technologies = req.body.technologies;
-        if (typeof technologies === 'string') {
-            technologies = technologies.split(',').map(tech => tech.trim());
+        // Parse tags if sent as string
+        let tags = req.body.tags;
+        if (typeof tags === 'string') {
+            tags = tags.split(',').map(tag => tag.trim());
         }
 
-        // Create project with image URL
+        // Create project with form data
         const projectData = {
-            image: imageUrl,
+            slug: req.body.slug,
             title: req.body.title,
+            description: req.body.description,
+            tags: tags,
+            status: req.body.status || 'Pending',
+            image: imageUrl,
+            // Optional legacy fields for backward compatibility
             shortDescription: req.body.shortDescription,
             longDescription: req.body.longDescription,
-            technologies: technologies,
+            technologies: req.body.technologies ? (typeof req.body.technologies === 'string' ? req.body.technologies.split(',').map(tech => tech.trim()) : req.body.technologies) : [],
             demoLink: req.body.demoLink
         };
 
@@ -116,6 +121,13 @@ const createProject = async (req, res, next) => {
             message: 'Project created successfully'
         });
     } catch (error) {
+        // Handle duplicate slug error
+        if (error.code === 11000 && error.keyPattern?.slug) {
+            return res.status(400).json({
+                success: false,
+                message: 'Slug already exists. Please use a unique slug.'
+            });
+        }
         next(error);
     }
 };
