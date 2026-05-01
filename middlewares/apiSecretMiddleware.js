@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 const apiSecretMiddleware = (req, res, next) => {
-    const expectedSecret = process.env.API_SECRET;
+    const expectedSecret = process.env.SHARED_API_SECRET;
     const providedSecret = req.headers['x-api-secret'];
 
     if (!expectedSecret) {
