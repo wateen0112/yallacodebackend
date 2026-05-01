@@ -80,6 +80,9 @@ const getProject = async (req, res, next) => {
 // @access  Public (in production, might need auth)
 const createProject = async (req, res, next) => {
     try {
+        console.log('Request body received:', req.body);
+        console.log('File received:', req.file);
+
         let imageUrl = '';
 
         // Handle image upload if present
@@ -112,6 +115,8 @@ const createProject = async (req, res, next) => {
             technologies: req.body.technologies ? (typeof req.body.technologies === 'string' ? req.body.technologies.split(',').map(tech => tech.trim()) : req.body.technologies) : [],
             demoLink: req.body.demoLink
         };
+
+        console.log('Project data to be created:', projectData);
 
         const project = await Project.create(projectData);
 

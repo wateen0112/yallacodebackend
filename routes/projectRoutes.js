@@ -100,14 +100,37 @@ router.get('/:id', getProject);
  * /api/projects:
  *   post:
  *     summary: Create new project
- *     description: Create a new project with image and details
+ *     description: Create a new project with image and details using multipart form data
  *     tags: [Projects]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Project'
+ *             type: object
+ *             required: ['slug', 'title', 'description', 'status', 'image']
+ *             properties:
+ *               slug:
+ *                 type: string
+ *                 description: Unique URL-friendly identifier for the project
+ *               title:
+ *                 type: string
+ *                 description: Project title
+ *               description:
+ *                 type: string
+ *                 description: Project description
+ *               tags:
+ *                 type: string
+ *                 description: Comma-separated list of tags
+ *               status:
+ *                 type: string
+ *                 enum: [Pending, 'In Progress', Completed, 'On Hold']
+ *                 default: Pending
+ *                 description: Current status of the project
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: Project image file
  *     responses:
  *       201:
  *         description: Project created successfully

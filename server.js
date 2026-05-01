@@ -69,34 +69,55 @@ const swaggerDefinition = {
         schemas: {
             Project: {
                 type: 'object',
-                required: ['image', 'title', 'shortDescription', 'longDescription', 'technologies', 'demoLink'],
+                required: ['slug', 'title', 'description', 'status', 'image'],
                 properties: {
-                    image: {
+                    slug: {
                         type: 'string',
-                        description: 'Cloudinary URL of the project image',
+                        description: 'Unique URL-friendly identifier for the project',
                     },
                     title: {
                         type: 'string',
                         description: 'Project title',
                     },
+                    description: {
+                        type: 'string',
+                        description: 'Project description',
+                    },
+                    tags: {
+                        type: 'array',
+                        items: {
+                            type: 'string',
+                        },
+                        description: 'List of tags for the project',
+                    },
+                    status: {
+                        type: 'string',
+                        enum: ['Pending', 'In Progress', 'Completed', 'On Hold'],
+                        description: 'Current status of the project',
+                    },
+                    image: {
+                        type: 'string',
+                        description: 'Cloudinary URL of the project image',
+                    },
+                    // Legacy fields for backward compatibility
                     shortDescription: {
                         type: 'string',
-                        description: 'Brief project description',
+                        description: 'Brief project description (legacy)',
                     },
                     longDescription: {
                         type: 'string',
-                        description: 'Detailed project description',
+                        description: 'Detailed project description (legacy)',
                     },
                     technologies: {
                         type: 'array',
                         items: {
                             type: 'string',
                         },
-                        description: 'List of technologies used',
+                        description: 'List of technologies used (legacy)',
                     },
                     demoLink: {
                         type: 'string',
-                        description: 'Link to project demo',
+                        description: 'Link to project demo (legacy)',
                     },
                     createdAt: {
                         type: 'string',
