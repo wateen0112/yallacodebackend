@@ -15,6 +15,18 @@ const splitCommaList = (value) => {
     return [];
 };
 
+/** First defined alias from multipart/JSON clients (e.g. projectUrl vs project_url). */
+const firstFormString = (body, keys) => {
+    for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(body, key)) {
+            const v = body[key];
+            if (v === undefined || v === null) return '';
+            return String(v).trim();
+        }
+    }
+    return '';
+};
+
 // @desc    Get all projects
 // @route   GET /api/projects
 // @access  Public
@@ -219,9 +231,12 @@ const createProject = async (req, res, next) => {
                     ? String(req.body.longDescription).trim()
                     : '',
             technologies,
-            demoLink: req.body.demoLink != null ? String(req.body.demoLink).trim() : '',
-            project_url:
-                req.body.project_url != null ? String(req.body.project_url).trim() : ''
+            demoLink: firstFormString(req.body, ['demoLink', 'demo_link']),
+            project_url: firstFormString(req.body, [
+                'project_url',
+                'projectUrl',
+                'projectURL'
+            ])
         };
 
         const project = await Project.create(projectData);
