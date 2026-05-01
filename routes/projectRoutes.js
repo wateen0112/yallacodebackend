@@ -4,7 +4,8 @@ const router = express.Router();
 const {
     getProjects,
     getProject,
-    createProject
+    createProject,
+    deleteProject
 } = require('../controllers/projectController');
 const upload = require('../middlewares/uploadMiddleware');
 
@@ -131,5 +132,41 @@ router.get('/:id', getProject);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', upload.single('image'), createProject);
+
+/**
+ * @swagger
+ * /api/projects/{id}:
+ *   delete:
+ *     summary: Delete a project
+ *     description: Delete a specific project by ID
+ *     tags: [Projects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     responses:
+ *       200:
+ *         description: Project deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       404:
+ *         description: Project not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.delete('/:id', deleteProject);
 
 module.exports = router;
