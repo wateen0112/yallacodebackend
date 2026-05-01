@@ -99,6 +99,10 @@ const swaggerDefinition = {
                         type: 'string',
                         description: 'Cloudinary URL of the project image',
                     },
+                    coverImage: {
+                        type: 'string',
+                        description: 'Legacy field for project image URL',
+                    },
                     // Legacy fields for backward compatibility
                     shortDescription: {
                         type: 'string',
