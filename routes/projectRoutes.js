@@ -170,7 +170,8 @@ router.get('/:id', getProject);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', upload.single('image'), createProject);
+// fields() keeps all text parts in req.body (e.g. project_url) alongside the image file
+router.post('/', upload.fields([{ name: 'image', maxCount: 1 }]), createProject);
 
 /**
  * @swagger

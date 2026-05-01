@@ -15,17 +15,32 @@ const splitCommaList = (value) => {
     return [];
 };
 
-/** First defined alias from multipart/JSON clients (e.g. projectUrl vs project_url). */
+/**
+ * Read first matching form field (multipart or JSON).
+ * Handles duplicate fields (array), Buffer segments, and common aliases.
+ */
 const firstFormString = (body, keys) => {
     for (const key of keys) {
-        if (Object.prototype.hasOwnProperty.call(body, key)) {
-            const v = body[key];
-            if (v === undefined || v === null) return '';
-            return String(v).trim();
+        if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
+        let v = body[key];
+        if (Array.isArray(v)) {
+            v = v.find((x) => x !== undefined && x !== null && x !== '');
         }
+        if (v === undefined || v === null) return '';
+        if (Buffer.isBuffer(v)) return v.toString('utf8').trim();
+        return String(v).trim();
     }
     return '';
 };
+
+/** Maps multipart name="project_url" (and aliases) to stored schema field project_url. */
+const projectUrlFromBody = (body) =>
+    firstFormString(body, [
+        'project_url',
+        'projectUrl',
+        'projectURL',
+        'project-url',
+    ]);
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -164,20 +179,25 @@ const createProject = async (req, res, next) => {
     try {
         let imageUrl = '';
 
+        const imageFile =
+            req.file ||
+            (req.files && req.files.image && req.files.image[0]) ||
+            null;
+
         // Handle image upload if present
-        if (req.file) {
+        if (imageFile) {
             // Brief delay so disk write completes (Windows / slow FS)
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             const fs = require('fs');
-            if (!fs.existsSync(req.file.path)) {
+            if (!fs.existsSync(imageFile.path)) {
                 return res.status(500).json({
                     success: false,
                     message: 'Uploaded file not found on server'
                 });
             }
 
-            const stats = fs.statSync(req.file.path);
+            const stats = fs.statSync(imageFile.path);
             if (stats.size === 0) {
                 return res.status(500).json({
                     success: false,
@@ -185,7 +205,7 @@ const createProject = async (req, res, next) => {
                 });
             }
 
-            imageUrl = await uploadToCloudinary(req.file.path);
+            imageUrl = await uploadToCloudinary(imageFile.path);
         } else {
             return res.status(400).json({
                 success: false,
@@ -232,11 +252,7 @@ const createProject = async (req, res, next) => {
                     : '',
             technologies,
             demoLink: firstFormString(req.body, ['demoLink', 'demo_link']),
-            project_url: firstFormString(req.body, [
-                'project_url',
-                'projectUrl',
-                'projectURL'
-            ])
+            project_url: projectUrlFromBody(req.body),
         };
 
         const project = await Project.create(projectData);
