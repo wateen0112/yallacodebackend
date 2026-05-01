@@ -88,10 +88,45 @@ const createProject = async (req, res, next) => {
         console.log('Title field specifically:', req.body.title);
         console.log('Slug field specifically:', req.body.slug);
 
-        // TEMPORARY: Skip Cloudinary for debugging - use placeholder URL
-        let imageUrl = 'https://via.placeholder.com/300x200.png?text=Debug+Image';
-        
-        console.log('Using placeholder image URL for debugging');
+        let imageUrl = '';
+
+        // Handle image upload if present
+        if (req.file) {
+            console.log('File uploaded successfully:', req.file);
+            console.log('File path:', req.file.path);
+            
+            // Add a small delay to ensure file is fully written
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Check if file exists before uploading to Cloudinary
+            const fs = require('fs');
+            if (!fs.existsSync(req.file.path)) {
+                console.error('File not found at path:', req.file.path);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Uploaded file not found on server'
+                });
+            }
+            
+            // Check file size to ensure it's not empty
+            const stats = fs.statSync(req.file.path);
+            console.log('File size:', stats.size, 'bytes');
+            if (stats.size === 0) {
+                console.error('File is empty:', req.file.path);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Uploaded file is empty'
+                });
+            }
+            
+            imageUrl = await uploadToCloudinary(req.file.path);
+            console.log('Cloudinary upload successful, URL:', imageUrl);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Image is required'
+            });
+        }
 
         // Parse tags if sent as string
         let tags = req.body.tags;
@@ -109,7 +144,7 @@ const createProject = async (req, res, next) => {
             tags: tags,
             status: req.body.status || 'Pending',
             image: imageUrl,
-            project_url: req.body.project_url,
+            project_url: req.body.projectUrl || req.body.project_url,
             // Optional legacy fields for backward compatibility
             shortDescription: req.body.shortDescription,
             longDescription: req.body.longDescription,
