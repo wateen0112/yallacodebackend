@@ -49,6 +49,10 @@ const projectSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    project_url: {
+        type: String,
+        trim: true,
+    },
 }, {
     timestamps: true,
 });

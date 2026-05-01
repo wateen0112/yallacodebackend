@@ -111,7 +111,8 @@ const createProject = async (req, res, next) => {
             shortDescription: req.body.shortDescription,
             longDescription: req.body.longDescription,
             technologies: req.body.technologies ? (typeof req.body.technologies === 'string' ? req.body.technologies.split(',').map(tech => tech.trim()) : req.body.technologies) : [],
-            demoLink: req.body.demoLink
+            demoLink: req.body.demoLink,
+            project_url: req.body.project_url
         };
 
         console.log('Project data to be created:', projectData);

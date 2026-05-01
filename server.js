@@ -119,6 +119,10 @@ const swaggerDefinition = {
                         type: 'string',
                         description: 'Link to project demo (legacy)',
                     },
+                    project_url: {
+                        type: 'string',
+                        description: 'URL to the live project or demo',
+                    },
                     createdAt: {
                         type: 'string',
                         format: 'date-time',
