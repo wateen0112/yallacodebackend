@@ -160,9 +160,13 @@ const createProject = async (req, res, next) => {
         console.log('Description in projectData:', projectData.description);
         console.log('Title in projectData:', projectData.title);
         console.log('Slug in projectData:', projectData.slug);
+        console.log('Project URL in projectData:', projectData.project_url);
+        console.log('req.body.projectUrl:', req.body.projectUrl);
+        console.log('req.body.project_url:', req.body.project_url);
 
         const project = await Project.create(projectData);
         console.log('Project created successfully:', project);
+        console.log('Created project project_url:', project.project_url);
 
         res.status(201).json({
             success: true,
