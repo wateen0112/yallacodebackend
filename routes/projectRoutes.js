@@ -6,6 +6,7 @@ const {
     getProject,
     createProject
 } = require('../controllers/projectController');
+const upload = require('../middlewares/uploadMiddleware');
 
 /**
  * @swagger
@@ -129,6 +130,6 @@ router.get('/:id', getProject);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', createProject);
+router.post('/', upload.single('image'), createProject);
 
 module.exports = router;

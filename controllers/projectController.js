@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const uploadToCloudinary = require('../utils/uploadToCloudinary');
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -79,7 +80,35 @@ const getProject = async (req, res, next) => {
 // @access  Public (in production, might need auth)
 const createProject = async (req, res, next) => {
     try {
-        const project = await Project.create(req.body);
+        let imageUrl = '';
+
+        // Handle image upload if present
+        if (req.file) {
+            imageUrl = await uploadToCloudinary(req.file.path);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Image is required'
+            });
+        }
+
+        // Parse technologies if sent as string
+        let technologies = req.body.technologies;
+        if (typeof technologies === 'string') {
+            technologies = technologies.split(',').map(tech => tech.trim());
+        }
+
+        // Create project with image URL
+        const projectData = {
+            image: imageUrl,
+            title: req.body.title,
+            shortDescription: req.body.shortDescription,
+            longDescription: req.body.longDescription,
+            technologies: technologies,
+            demoLink: req.body.demoLink
+        };
+
+        const project = await Project.create(projectData);
 
         res.status(201).json({
             success: true,
