@@ -1,6 +1,20 @@
 const Project = require('../models/Project');
 const uploadToCloudinary = require('../utils/uploadToCloudinary');
 
+/** 24-hex MongoDB ObjectId string */
+const isMongoObjectId = (s) => typeof s === 'string' && /^[a-fA-F0-9]{24}$/.test(s);
+
+const splitCommaList = (value) => {
+    if (value === undefined || value === null) return [];
+    if (Array.isArray(value)) {
+        return value.map((s) => String(s).trim()).filter(Boolean);
+    }
+    if (typeof value === 'string') {
+        return value.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+};
+
 // @desc    Get all projects
 // @route   GET /api/projects
 // @access  Public
@@ -13,11 +27,15 @@ const getProjects = async (req, res, next) => {
 
         const query = {};
 
-        // Search in title or technologies
+        // Search title, slug, description, tags, technologies (escape regex special chars)
         if (search) {
+            const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { technologies: { $in: [new RegExp(search, 'i')] } }
+                { title: { $regex: escaped, $options: 'i' } },
+                { slug: { $regex: escaped, $options: 'i' } },
+                { description: { $regex: escaped, $options: 'i' } },
+                { tags: { $regex: escaped, $options: 'i' } },
+                { technologies: { $regex: escaped, $options: 'i' } },
             ];
         }
 
@@ -74,12 +92,22 @@ const getProjects = async (req, res, next) => {
     }
 };
 
-// @desc    Get single project
+// @desc    Get single project by MongoDB id or slug
 // @route   GET /api/projects/:id
 // @access  Public
 const getProject = async (req, res, next) => {
     try {
-        const project = await Project.findById(req.params.id);
+        const param = req.params.id;
+        let project;
+
+        if (isMongoObjectId(param)) {
+            project = await Project.findById(param);
+        }
+        if (!project) {
+            project = await Project.findOne({
+                slug: String(param).toLowerCase().trim(),
+            });
+        }
 
         if (!project) {
             return res.status(404).json({
@@ -87,10 +115,6 @@ const getProject = async (req, res, next) => {
                 message: 'Project not found'
             });
         }
-
-        console.log('Project found:', project);
-        console.log('Project project_url:', project.project_url);
-        console.log('Project object keys:', Object.keys(project.toObject()));
 
         // Ensure project has empty data for non-provided attributes
         const projectObj = project.toObject();
@@ -126,47 +150,30 @@ const getProject = async (req, res, next) => {
 // @access  Public (in production, might need auth)
 const createProject = async (req, res, next) => {
     try {
-        console.log('=== CREATE PROJECT START ===');
-        console.log('Request body received:', req.body);
-        console.log('Request body keys:', Object.keys(req.body));
-        console.log('File received:', req.file);
-        console.log('Description field specifically:', req.body.description);
-        console.log('Title field specifically:', req.body.title);
-        console.log('Slug field specifically:', req.body.slug);
-
         let imageUrl = '';
 
         // Handle image upload if present
         if (req.file) {
-            console.log('File uploaded successfully:', req.file);
-            console.log('File path:', req.file.path);
-            
-            // Add a small delay to ensure file is fully written
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Check if file exists before uploading to Cloudinary
+            // Brief delay so disk write completes (Windows / slow FS)
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
             const fs = require('fs');
             if (!fs.existsSync(req.file.path)) {
-                console.error('File not found at path:', req.file.path);
                 return res.status(500).json({
                     success: false,
                     message: 'Uploaded file not found on server'
                 });
             }
-            
-            // Check file size to ensure it's not empty
+
             const stats = fs.statSync(req.file.path);
-            console.log('File size:', stats.size, 'bytes');
             if (stats.size === 0) {
-                console.error('File is empty:', req.file.path);
                 return res.status(500).json({
                     success: false,
                     message: 'Uploaded file is empty'
                 });
             }
-            
+
             imageUrl = await uploadToCloudinary(req.file.path);
-            console.log('Cloudinary upload successful, URL:', imageUrl);
         } else {
             return res.status(400).json({
                 success: false,
@@ -174,49 +181,50 @@ const createProject = async (req, res, next) => {
             });
         }
 
-        // Parse tags if sent as string
-        let tags = req.body.tags;
-        if (typeof tags === 'string') {
-            tags = tags.split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0); // Remove empty tags from trailing comma
+        const tags = splitCommaList(req.body.tags);
+        const technologies = splitCommaList(req.body.technologies);
+
+        const slug = req.body.slug != null ? String(req.body.slug).trim() : '';
+        const title = req.body.title != null ? String(req.body.title).trim() : '';
+        const description =
+            req.body.description != null ? String(req.body.description).trim() : '';
+
+        if (!slug || !title || !description) {
+            return res.status(400).json({
+                success: false,
+                message: 'slug, title, and description are required'
+            });
         }
 
-        // Parse technologies if sent as string
-        let technologies = req.body.technologies;
-        if (typeof technologies === 'string') {
-            technologies = technologies.split(',')
-                .map(tech => tech.trim())
-                .filter(tech => tech.length > 0); // Remove empty technologies from trailing comma
+        const allowedStatus = ['Pending', 'In Progress', 'Completed', 'On Hold'];
+        let status = req.body.status != null ? String(req.body.status).trim() : 'Pending';
+        if (!allowedStatus.includes(status)) {
+            status = 'Pending';
         }
 
-        // Create project with form data
+        // Create project with form data (multipart field names match client)
         const projectData = {
-            slug: req.body.slug,
-            title: req.body.title,
-            description: req.body.description,
-            tags: tags,
-            status: req.body.status || 'Pending',
+            slug,
+            title,
+            description,
+            tags,
+            status,
             image: imageUrl,
-            // Handle all form fields
-            shortDescription: req.body.shortDescription || '',
-            longDescription: req.body.longDescription || '',
-            technologies: technologies,
-            demoLink: req.body.demoLink || '',
-            project_url: req.body.project_url || ''
+            shortDescription:
+                req.body.shortDescription != null
+                    ? String(req.body.shortDescription).trim()
+                    : '',
+            longDescription:
+                req.body.longDescription != null
+                    ? String(req.body.longDescription).trim()
+                    : '',
+            technologies,
+            demoLink: req.body.demoLink != null ? String(req.body.demoLink).trim() : '',
+            project_url:
+                req.body.project_url != null ? String(req.body.project_url).trim() : ''
         };
 
-        console.log('Project data to be created:', projectData);
-        console.log('Description in projectData:', projectData.description);
-        console.log('Title in projectData:', projectData.title);
-        console.log('Slug in projectData:', projectData.slug);
-        console.log('Project URL in projectData:', projectData.project_url);
-        console.log('req.body.projectUrl:', req.body.projectUrl);
-        console.log('req.body.project_url:', req.body.project_url);
-
         const project = await Project.create(projectData);
-        console.log('Project created successfully:', project);
-        console.log('Created project project_url:', project.project_url);
 
         // Ensure project has empty data for non-provided attributes in response
         const projectObj = project.toObject();
@@ -244,11 +252,6 @@ const createProject = async (req, res, next) => {
             message: 'Project created successfully'
         });
     } catch (error) {
-        console.error('=== CREATE PROJECT ERROR ===');
-        console.error('Error details:', error);
-        console.error('Error message:', error.message);
-        console.error('Error name:', error.name);
-        
         // Handle duplicate slug error
         if (error.code === 11000 && error.keyPattern?.slug) {
             return res.status(400).json({

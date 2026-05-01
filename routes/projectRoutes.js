@@ -34,7 +34,7 @@ const upload = require('../middlewares/uploadMiddleware');
  *         name: search
  *         schema:
  *           type: string
- *         description: Search term for title or technologies
+ *         description: Search term (title, slug, description, tags, technologies)
  *       - in: query
  *         name: sort
  *         schema:
@@ -62,7 +62,7 @@ router.get('/', getProjects);
  * /api/projects/{id}:
  *   get:
  *     summary: Get single project
- *     description: Retrieve a specific project by ID
+ *     description: Retrieve a project by MongoDB id (24-char hex) or by slug
  *     tags: [Projects]
  *     parameters:
  *       - in: path
@@ -70,7 +70,7 @@ router.get('/', getProjects);
  *         required: true
  *         schema:
  *           type: string
- *         description: Project ID
+ *         description: MongoDB ObjectId or project slug
  *     responses:
  *       200:
  *         description: Project retrieved successfully
@@ -170,18 +170,7 @@ router.get('/:id', getProject);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-// Add debugging middleware before multer upload
-router.post('/', (req, res, next) => {
-    console.log('Raw request headers:', req.headers);
-    console.log('Raw request content-type:', req.get('Content-Type'));
-    console.log('Raw request method:', req.method);
-    next();
-}, upload.single('image'), (req, res, next) => {
-    console.log('After multer - Request body:', req.body);
-    console.log('After multer - Request file:', req.file);
-    console.log('After multer - Body keys:', Object.keys(req.body));
-    next();
-}, createProject);
+router.post('/', upload.single('image'), createProject);
 
 /**
  * @swagger
