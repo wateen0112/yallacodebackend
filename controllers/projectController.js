@@ -87,7 +87,35 @@ const createProject = async (req, res, next) => {
 
         // Handle image upload if present
         if (req.file) {
+            console.log('File uploaded successfully:', req.file);
+            console.log('File path:', req.file.path);
+            
+            // Add a small delay to ensure file is fully written
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Check if file exists before uploading to Cloudinary
+            const fs = require('fs');
+            if (!fs.existsSync(req.file.path)) {
+                console.error('File not found at path:', req.file.path);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Uploaded file not found on server'
+                });
+            }
+            
+            // Check file size to ensure it's not empty
+            const stats = fs.statSync(req.file.path);
+            console.log('File size:', stats.size, 'bytes');
+            if (stats.size === 0) {
+                console.error('File is empty:', req.file.path);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Uploaded file is empty'
+                });
+            }
+            
             imageUrl = await uploadToCloudinary(req.file.path);
+            console.log('Cloudinary upload successful, URL:', imageUrl);
         } else {
             return res.status(400).json({
                 success: false,
