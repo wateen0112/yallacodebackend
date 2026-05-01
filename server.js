@@ -15,7 +15,7 @@ const swaggerUi = require('swagger-ui-express');
 
 // Import configs
 const connectDB = require('./config/db');
-const { cloudinaryConfig } = require('./config/cloudinary');
+const { cloudinaryConfig, testCloudinaryConnection } = require('./config/cloudinary');
 
 // Import routes
 const projectRoutes = require('./routes/projectRoutes');
@@ -283,6 +283,9 @@ connectDB();
 
 // Cloudinary config
 cloudinaryConfig();
+
+// Test Cloudinary connection
+testCloudinaryConnection();
 
 // Rate limiting: 5 requests per minute per IP
 const limiter = rateLimit({
