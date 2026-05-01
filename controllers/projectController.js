@@ -36,9 +36,31 @@ const getProjects = async (req, res, next) => {
 
         const total = await Project.countDocuments(query);
 
+        // Ensure all projects have empty data for non-provided attributes
+        const normalizedProjects = projects.map(project => {
+            const projectObj = project.toObject();
+            return {
+                id: projectObj._id,
+                slug: projectObj.slug || '',
+                title: projectObj.title || '',
+                description: projectObj.description || '',
+                tags: projectObj.tags || [],
+                status: projectObj.status || 'Pending',
+                image: projectObj.image || '',
+                coverImage: projectObj.coverImage || '',
+                project_url: projectObj.project_url || '',
+                shortDescription: projectObj.shortDescription || '',
+                longDescription: projectObj.longDescription || '',
+                technologies: projectObj.technologies || [],
+                demoLink: projectObj.demoLink || '',
+                createdAt: projectObj.createdAt,
+                updatedAt: projectObj.updatedAt
+            };
+        });
+
         res.status(200).json({
             success: true,
-            data: projects,
+            data: normalizedProjects,
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(total / limit),
@@ -70,9 +92,29 @@ const getProject = async (req, res, next) => {
         console.log('Project project_url:', project.project_url);
         console.log('Project object keys:', Object.keys(project.toObject()));
 
+        // Ensure project has empty data for non-provided attributes
+        const projectObj = project.toObject();
+        const normalizedProject = {
+            id: projectObj._id,
+            slug: projectObj.slug || '',
+            title: projectObj.title || '',
+            description: projectObj.description || '',
+            tags: projectObj.tags || [],
+            status: projectObj.status || 'Pending',
+            image: projectObj.image || '',
+            coverImage: projectObj.coverImage || '',
+            project_url: projectObj.project_url || '',
+            shortDescription: projectObj.shortDescription || '',
+            longDescription: projectObj.longDescription || '',
+            technologies: projectObj.technologies || [],
+            demoLink: projectObj.demoLink || '',
+            createdAt: projectObj.createdAt,
+            updatedAt: projectObj.updatedAt
+        };
+
         res.status(200).json({
             success: true,
-            data: project
+            data: normalizedProject
         });
     } catch (error) {
         next(error);
@@ -168,10 +210,30 @@ const createProject = async (req, res, next) => {
         console.log('Project created successfully:', project);
         console.log('Created project project_url:', project.project_url);
 
+        // Ensure project has empty data for non-provided attributes in response
+        const projectObj = project.toObject();
+        const normalizedProject = {
+            id: projectObj._id,
+            slug: projectObj.slug || '',
+            title: projectObj.title || '',
+            description: projectObj.description || '',
+            tags: projectObj.tags || [],
+            status: projectObj.status || 'Pending',
+            image: projectObj.image || '',
+            coverImage: projectObj.coverImage || '',
+            project_url: projectObj.project_url || '',
+            shortDescription: projectObj.shortDescription || '',
+            longDescription: projectObj.longDescription || '',
+            technologies: projectObj.technologies || [],
+            demoLink: projectObj.demoLink || '',
+            createdAt: projectObj.createdAt,
+            updatedAt: projectObj.updatedAt
+        };
+
         res.status(201).json({
             success: true,
-            data: project,
-            message: 'Project created successfully (debug mode)'
+            data: normalizedProject,
+            message: 'Project created successfully'
         });
     } catch (error) {
         console.error('=== CREATE PROJECT ERROR ===');
