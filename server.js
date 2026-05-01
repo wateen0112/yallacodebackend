@@ -322,13 +322,15 @@ app.use(helmet());
 app.use(cors());
 //app.use(limiter);
 app.use(logRequest);
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Routes (before body parsers to avoid conflicts with multer)
 app.use('/api/projects', apiSecretForWriteMethods, projectRoutes);
 app.use('/api/reviews', apiSecretForWriteMethods, reviewRoutes);
 app.use('/api/upload', apiSecretForWriteMethods, uploadRoutes);
+
+// Body parsers (after routes to avoid conflicts with multipart forms)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

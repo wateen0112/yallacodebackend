@@ -154,7 +154,18 @@ router.get('/:id', getProject);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', upload.single('image'), createProject);
+// Add debugging middleware before multer upload
+router.post('/', (req, res, next) => {
+    console.log('Raw request headers:', req.headers);
+    console.log('Raw request content-type:', req.get('Content-Type'));
+    console.log('Raw request method:', req.method);
+    next();
+}, upload.single('image'), (req, res, next) => {
+    console.log('After multer - Request body:', req.body);
+    console.log('After multer - Request file:', req.file);
+    console.log('After multer - Body keys:', Object.keys(req.body));
+    next();
+}, createProject);
 
 /**
  * @swagger

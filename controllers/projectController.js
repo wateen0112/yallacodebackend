@@ -81,7 +81,11 @@ const getProject = async (req, res, next) => {
 const createProject = async (req, res, next) => {
     try {
         console.log('Request body received:', req.body);
+        console.log('Request body keys:', Object.keys(req.body));
         console.log('File received:', req.file);
+        console.log('Description field specifically:', req.body.description);
+        console.log('Title field specifically:', req.body.title);
+        console.log('Slug field specifically:', req.body.slug);
 
         let imageUrl = '';
 
