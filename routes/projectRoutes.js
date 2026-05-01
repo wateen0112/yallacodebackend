@@ -132,7 +132,7 @@ router.get('/:id', getProject);
  *                 type: string
  *                 format: binary
  *                 description: Project image file
- *               project_url:
+ *               projectUrl:
  *                 type: string
  *                 description: Optional URL to the live project or demo
  *     responses:

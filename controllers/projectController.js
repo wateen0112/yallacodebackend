@@ -96,7 +96,9 @@ const createProject = async (req, res, next) => {
         // Parse tags if sent as string
         let tags = req.body.tags;
         if (typeof tags === 'string') {
-            tags = tags.split(',').map(tag => tag.trim());
+            tags = tags.split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0); // Remove empty tags from trailing comma
         }
 
         // Create project with form data
@@ -107,12 +109,13 @@ const createProject = async (req, res, next) => {
             tags: tags,
             status: req.body.status || 'Pending',
             image: imageUrl,
+            // Handle both projectUrl (from form) and project_url (for API consistency)
+            project_url: req.body.projectUrl || req.body.project_url,
             // Optional legacy fields for backward compatibility
             shortDescription: req.body.shortDescription,
             longDescription: req.body.longDescription,
             technologies: req.body.technologies ? (typeof req.body.technologies === 'string' ? req.body.technologies.split(',').map(tech => tech.trim()) : req.body.technologies) : [],
-            demoLink: req.body.demoLink,
-            project_url: req.body.project_url
+            demoLink: req.body.demoLink
         };
 
         console.log('Project data to be created:', projectData);
