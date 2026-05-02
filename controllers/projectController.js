@@ -215,6 +215,62 @@ const createProject = async (req, res, next) => {
 
         const tags = splitCommaList(req.body.tags);
         const technologies = splitCommaList(req.body.technologies);
+        const projectUrl = req.body.projectUrl != null ? String(req.body.projectUrl).trim() : '';
+        if (!projectUrl) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl is required'
+            });
+        }
+        
+        if (!projectUrl.startsWith('https://')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must start with https://'
+            });
+        }
+        
+        if (!projectUrl.endsWith('/')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must end with /'
+            });
+        }
+        
+        if (projectUrl.length > 200) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must be less than 200 characters'
+            });
+        }
+        
+        if (projectUrl.includes(' ')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must not contain spaces'
+            });
+        }
+        
+        if (projectUrl.includes('.')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must not contain .'
+            });
+        }
+        
+        if (projectUrl.includes('@')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must not contain @'
+            });
+        }
+        
+        if (projectUrl.includes('#')) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectUrl must not contain #'
+            });
+        }
 
         const slug = req.body.slug != null ? String(req.body.slug).trim() : '';
         const title = req.body.title != null ? String(req.body.title).trim() : '';
@@ -238,6 +294,8 @@ const createProject = async (req, res, next) => {
         const projectData = {
             slug,
             title,
+            shortDescription,
+            longDescription,
             description,
             tags,
             status,
@@ -250,6 +308,8 @@ const createProject = async (req, res, next) => {
                 req.body.longDescription != null
                     ? String(req.body.longDescription).trim()
                     : '',
+                    projectUrl,
+
             technologies,
             demoLink: firstFormString(req.body, ['demoLink', 'demo_link']),
             project_url: projectUrlFromBody(req.body),
@@ -261,6 +321,7 @@ const createProject = async (req, res, next) => {
         const projectObj = project.toObject();
         const normalizedProject = {
             id: projectObj._id,
+            projectUrl,
             slug: projectObj.slug || '',
             title: projectObj.title || '',
             description: projectObj.description || '',
