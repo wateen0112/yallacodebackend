@@ -42,6 +42,33 @@ const projectUrlFromBody = (body) =>
         'project-url',
     ]);
 
+/** Single project payload for GET-by-id and related responses (includes project_url + projectUrl). */
+const toProjectResponse = (doc) => {
+    const o = doc && typeof doc.toObject === 'function' ? doc.toObject() : doc;
+    const rawUrl = o.project_url;
+    const projectUrlValue =
+        rawUrl === undefined || rawUrl === null ? '' : String(rawUrl).trim();
+
+    return {
+        id: o._id,
+        slug: o.slug || '',
+        title: o.title || '',
+        description: o.description || '',
+        tags: o.tags || [],
+        status: o.status || 'Pending',
+        image: o.image || '',
+        coverImage: o.coverImage || '',
+        project_url: projectUrlValue,
+        projectUrl: projectUrlValue,
+        shortDescription: o.shortDescription || '',
+        longDescription: o.longDescription || '',
+        technologies: o.technologies || [],
+        demoLink: o.demoLink || '',
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt
+    };
+};
+
 // @desc    Get all projects
 // @route   GET /api/projects
 // @access  Public
@@ -81,27 +108,7 @@ const getProjects = async (req, res, next) => {
 
         const total = await Project.countDocuments(query);
 
-        // Ensure all projects have empty data for non-provided attributes
-        const normalizedProjects = projects.map(project => {
-            const projectObj = project.toObject();
-            return {
-                id: projectObj._id,
-                slug: projectObj.slug || '',
-                title: projectObj.title || '',
-                description: projectObj.description || '',
-                tags: projectObj.tags || [],
-                status: projectObj.status || 'Pending',
-                image: projectObj.image || '',
-                coverImage: projectObj.coverImage || '',
-                project_url: projectObj.project_url || '',
-                shortDescription: projectObj.shortDescription || '',
-                longDescription: projectObj.longDescription || '',
-                technologies: projectObj.technologies || [],
-                demoLink: projectObj.demoLink || '',
-                createdAt: projectObj.createdAt,
-                updatedAt: projectObj.updatedAt
-            };
-        });
+        const normalizedProjects = projects.map((p) => toProjectResponse(p));
 
         res.status(200).json({
             success: true,
@@ -143,29 +150,9 @@ const getProject = async (req, res, next) => {
             });
         }
 
-        // Ensure project has empty data for non-provided attributes
-        const projectObj = project.toObject();
-        const normalizedProject = {
-            id: projectObj._id,
-            slug: projectObj.slug || '',
-            title: projectObj.title || '',
-            description: projectObj.description || '',
-            tags: projectObj.tags || [],
-            status: projectObj.status || 'Pending',
-            image: projectObj.image || '',
-            coverImage: projectObj.coverImage || '',
-            project_url: projectObj.project_url || '',
-            shortDescription: projectObj.shortDescription || '',
-            longDescription: projectObj.longDescription || '',
-            technologies: projectObj.technologies || [],
-            demoLink: projectObj.demoLink || '',
-            createdAt: projectObj.createdAt,
-            updatedAt: projectObj.updatedAt
-        };
-
         res.status(200).json({
             success: true,
-            data: normalizedProject
+            data: toProjectResponse(project)
         });
     } catch (error) {
         next(error);
@@ -264,28 +251,9 @@ const createProject = async (req, res, next) => {
 
         const project = await Project.create(projectData);
 
-        const projectObj = project.toObject();
-        const normalizedProject = {
-            id: projectObj._id,
-            slug: projectObj.slug || '',
-            title: projectObj.title || '',
-            description: projectObj.description || '',
-            tags: projectObj.tags || [],
-            status: projectObj.status || 'Pending',
-            image: projectObj.image || '',
-            coverImage: projectObj.coverImage || '',
-            project_url: projectObj.project_url || '',
-            shortDescription: projectObj.shortDescription || '',
-            longDescription: projectObj.longDescription || '',
-            technologies: projectObj.technologies || [],
-            demoLink: projectObj.demoLink || '',
-            createdAt: projectObj.createdAt,
-            updatedAt: projectObj.updatedAt
-        };
-
         res.status(201).json({
             success: true,
-            data: normalizedProject,
+            data: toProjectResponse(project),
             message: 'Project created successfully'
         });
     } catch (error) {
@@ -316,7 +284,7 @@ const getProjectById = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            data: project
+            data: toProjectResponse(project)
         });
     } catch (error) {
         next(error);
