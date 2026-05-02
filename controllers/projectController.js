@@ -34,11 +34,11 @@ const firstFormString = (body, keys) => {
 };
 
 /** Maps multipart name="project_url" (and aliases) to stored schema field project_url. */
-const projectUrlFromBody = (body) =>
+const project_urlFromBody = (body) =>
     firstFormString(body, [
         'project_url',
-        'projectUrl',
-        'projectURL',
+        'project_url',
+        'project_url',
         'project-url',
     ]);
 
@@ -215,60 +215,60 @@ const createProject = async (req, res, next) => {
 
         const tags = splitCommaList(req.body.tags);
         const technologies = splitCommaList(req.body.technologies);
-        const projectUrl = req.body.projectUrl != null ? String(req.body.projectUrl).trim() : '';
-        if (!projectUrl) {
+        const project_url = req.body.project_url != null ? String(req.body.project_url).trim() : '';
+        if (!project_url) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl is required'
+                message: 'project_url is required'
             });
         }
         
-        if (!projectUrl.startsWith('https://')) {
+        if (!project_url.startsWith('https://')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must start with https://'
+                message: 'project_url must start with https://'
             });
         }
         
-        if (!projectUrl.endsWith('/')) {
+        if (!project_url.endsWith('/')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must end with /'
+                message: 'project_url must end with /'
             });
         }
         
-        if (projectUrl.length > 200) {
+        if (project_url.length > 200) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must be less than 200 characters'
+                message: 'project_url must be less than 200 characters'
             });
         }
         
-        if (projectUrl.includes(' ')) {
+        if (project_url.includes(' ')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must not contain spaces'
+                message: 'project_url must not contain spaces'
             });
         }
         
-        if (projectUrl.includes('.')) {
+        if (project_url.includes('.')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must not contain .'
+                message: 'project_url must not contain .'
             });
         }
         
-        if (projectUrl.includes('@')) {
+        if (project_url.includes('@')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must not contain @'
+                message: 'project_url must not contain @'
             });
         }
         
-        if (projectUrl.includes('#')) {
+        if (project_url.includes('#')) {
             return res.status(400).json({
                 success: false,
-                message: 'projectUrl must not contain #'
+                message: 'project_url must not contain #'
             });
         }
 
@@ -308,11 +308,11 @@ const createProject = async (req, res, next) => {
                 req.body.longDescription != null
                     ? String(req.body.longDescription).trim()
                     : '',
-                    projectUrl,
+                    project_url,
 
             technologies,
             demoLink: firstFormString(req.body, ['demoLink', 'demo_link']),
-            project_url: projectUrlFromBody(req.body),
+            project_url: project_urlFromBody(req.body),
         };
 
         const project = await Project.create(projectData);
@@ -321,7 +321,7 @@ const createProject = async (req, res, next) => {
         const projectObj = project.toObject();
         const normalizedProject = {
             id: projectObj._id,
-            projectUrl,
+            project_url,
             slug: projectObj.slug || '',
             title: projectObj.title || '',
             description: projectObj.description || '',
