@@ -34,11 +34,11 @@ const firstFormString = (body, keys) => {
 };
 
 /** Maps multipart name="project_url" (and aliases) to stored schema field project_url. */
-const project_urlFromBody = (body) =>
+const projectUrlFromBody = (body) =>
     firstFormString(body, [
         'project_url',
-        'project_url',
-        'project_url',
+        'projectUrl',
+        'projectURL',
         'project-url',
     ]);
 
@@ -215,62 +215,6 @@ const createProject = async (req, res, next) => {
 
         const tags = splitCommaList(req.body.tags);
         const technologies = splitCommaList(req.body.technologies);
-        const project_url = req.body.project_url != null ? String(req.body.project_url).trim() : '';
-        if (!project_url) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url is required'
-            });
-        }
-        
-        if (!project_url.startsWith('https://')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must start with https://'
-            });
-        }
-        
-        if (!project_url.endsWith('/')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must end with /'
-            });
-        }
-        
-        if (project_url.length > 200) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must be less than 200 characters'
-            });
-        }
-        
-        if (project_url.includes(' ')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must not contain spaces'
-            });
-        }
-        
-        if (project_url.includes('.')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must not contain .'
-            });
-        }
-        
-        if (project_url.includes('@')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must not contain @'
-            });
-        }
-        
-        if (project_url.includes('#')) {
-            return res.status(400).json({
-                success: false,
-                message: 'project_url must not contain #'
-            });
-        }
 
         const slug = req.body.slug != null ? String(req.body.slug).trim() : '';
         const title = req.body.title != null ? String(req.body.title).trim() : '';
@@ -284,44 +228,45 @@ const createProject = async (req, res, next) => {
             });
         }
 
+        const shortDescription =
+            req.body.shortDescription != null ? String(req.body.shortDescription).trim() : '';
+        const longDescription =
+            req.body.longDescription != null ? String(req.body.longDescription).trim() : '';
+
+        // Same lookup as multipart aliases (project_url, projectUrl, …) — not only req.body.project_url
+        const project_url = projectUrlFromBody(req.body);
+        if (project_url.length > 2048) {
+            return res.status(400).json({
+                success: false,
+                message: 'project_url is too long (max 2048 characters)'
+            });
+        }
+
         const allowedStatus = ['Pending', 'In Progress', 'Completed', 'On Hold'];
         let status = req.body.status != null ? String(req.body.status).trim() : 'Pending';
         if (!allowedStatus.includes(status)) {
             status = 'Pending';
         }
 
-        // Create project with form data (multipart field names match client)
         const projectData = {
             slug,
             title,
-            shortDescription,
-            longDescription,
             description,
             tags,
             status,
             image: imageUrl,
-            shortDescription:
-                req.body.shortDescription != null
-                    ? String(req.body.shortDescription).trim()
-                    : '',
-            longDescription:
-                req.body.longDescription != null
-                    ? String(req.body.longDescription).trim()
-                    : '',
-                    project_url,
-
+            shortDescription,
+            longDescription,
             technologies,
             demoLink: firstFormString(req.body, ['demoLink', 'demo_link']),
-            project_url: project_urlFromBody(req.body),
+            project_url,
         };
 
         const project = await Project.create(projectData);
 
-        // Ensure project has empty data for non-provided attributes in response
         const projectObj = project.toObject();
         const normalizedProject = {
             id: projectObj._id,
-            project_url,
             slug: projectObj.slug || '',
             title: projectObj.title || '',
             description: projectObj.description || '',
