@@ -164,6 +164,11 @@ const getProject = async (req, res, next) => {
 // @access  Public (in production, might need auth)
 const createProject = async (req, res, next) => {
     try {
+        console.log('=== CREATE PROJECT FUNCTION CALLED ===');
+        console.log('Request body:', req.body);
+        console.log('Request files:', req.files);
+        console.log('Request method:', req.method);
+        console.log('Request URL:', req.originalUrl);
         let imageUrl = '';
 
         const imageFile =
